@@ -2930,9 +2930,7 @@ class Api(object):
             raise TwitterError("Specify at least one of user_id, screen_name, or users.")
 
         url = '%s/users/by' % self.base_url
-        parameters = {
-            'include_entities': include_entities
-        }
+        parameters = {}
         uids = list()
         if user_id:
             uids.extend(user_id)
