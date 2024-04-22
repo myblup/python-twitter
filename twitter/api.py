@@ -259,9 +259,9 @@ class Api(object):
         self.verify_ssl = verify_ssl
         self.cert_ssl = cert_ssl
 
-        self.base_url = base_url or 'https://api.twitter.com/1.1'
-        self.stream_url = stream_url or 'https://stream.twitter.com/1.1'
-        self.upload_url = upload_url or 'https://upload.twitter.com/1.1'
+        self.base_url = base_url or 'https://api.twitter.com/2'
+        self.stream_url = stream_url or 'https://stream.twitter.com/2'
+        self.upload_url = upload_url or 'https://upload.twitter.com/2'
 
         self.chunk_size = chunk_size
 
@@ -790,23 +790,30 @@ class Api(object):
         Returns:
           A sequence of Status instances, one for each message up to count
         """
-        url = '%s/statuses/user_timeline.json' % (self.base_url)
+        if not user_id:
+            user_id = UsersLookup(screen_name=[username])['id']
+        url = '%s/users/%s/tweets' % (self.base_url,str(user_id))
         parameters = {}
 
-        if user_id:
+        """if user_id:
             parameters['user_id'] = enf_type('user_id', int, user_id)
         elif screen_name:
-            parameters['screen_name'] = screen_name
+            parameters['screen_name'] = screen_name"""
         if since_id:
             parameters['since_id'] = enf_type('since_id', int, since_id)
-        if max_id:
-            parameters['max_id'] = enf_type('max_id', int, max_id)
+        #if max_id:
+         #   parameters['max_id'] = enf_type('max_id', int, max_id)
         if count:
-            parameters['count'] = enf_type('count', int, count)
+            parameters['max_results'] = enf_type('max_results', int, count)
 
-        parameters['include_rts'] = enf_type('include_rts', bool, include_rts)
-        parameters['trim_user'] = enf_type('trim_user', bool, trim_user)
-        parameters['exclude_replies'] = enf_type('exclude_replies', bool, exclude_replies)
+        exclude = []
+        if not include_rts:
+            exlude.append('retweets' )
+        
+        #parameters['trim_user'] = enf_type('trim_user', bool, trim_user)
+        if exclude_replies:
+            exclude.append('replies')
+        parameters['exclude'] = ','.join(exclude)
 
         resp = self._RequestUrl(url, 'GET', data=parameters)
         data = self._ParseAndCheckTwitter(resp.content.decode('utf-8'))
@@ -2922,7 +2929,7 @@ class Api(object):
         if not any([user_id, screen_name, users]):
             raise TwitterError("Specify at least one of user_id, screen_name, or users.")
 
-        url = '%s/users/lookup.json' % self.base_url
+        url = '%s/users/by' % self.base_url
         parameters = {
             'include_entities': include_entities
         }
@@ -2934,7 +2941,7 @@ class Api(object):
         if len(uids):
             parameters['user_id'] = ','.join([str(u) for u in uids])
         if screen_name:
-            parameters['screen_name'] = parse_arg_list(screen_name, 'screen_name')
+            parameters['usernames'] = parse_arg_list(screen_name, 'screen_name')
 
         if len(uids) > 100:
             raise TwitterError("No more than 100 users may be requested per request.")
@@ -4849,7 +4856,7 @@ class Api(object):
           A twitter.User instance representing that user if the
           credentials are valid, None otherwise.
         """
-        url = '%s/account/verify_credentials.json' % self.base_url
+        url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
         data = {
             'include_entities': enf_type('include_entities', bool, include_entities),
             'skip_status': enf_type('skip_status', bool, skip_status),
@@ -5090,7 +5097,7 @@ class Api(object):
                 raise TwitterError({'message': "Exceeded connection limit for user"})
             if "Error 401 Unauthorized" in json_data:
                 raise TwitterError({'message': "Unauthorized"})
-            raise TwitterError({'message': 'Unknown error': '{0}'.format(json_data)})
+            raise TwitterError({'message': 'Unknown error: {0}'.format(json_data)})
         self._CheckForTwitterError(data)
         return data
 
