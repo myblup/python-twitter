@@ -5167,7 +5167,7 @@ class Api(object):
         if not data:
             data = {}
 
-        data['tweet_mode'] = self.tweet_mode
+        #data['tweet_mode'] = self.tweet_mode
 
         if verb == 'POST':
             if data:
