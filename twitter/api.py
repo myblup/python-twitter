@@ -2941,7 +2941,7 @@ class Api(object):
         if len(uids):
             parameters['user_id'] = ','.join([str(u) for u in uids])
         if screen_name:
-            parameters['screen_name'] = parse_arg_list(screen_name, 'screen_name')
+            parameters['usernames'] = parse_arg_list(screen_name, 'screen_name')
 
         if len(uids) > 100:
             raise TwitterError("No more than 100 users may be requested per request.")
