@@ -791,7 +791,7 @@ class Api(object):
           A sequence of Status instances, one for each message up to count
         """
         if not user_id:
-            user_id = UsersLookup(screen_name=[username])['id']
+            user_id = self.UsersLookup(screen_name=[username])['id']
         url = '%s/users/%s/tweets' % (self.base_url,str(user_id))
         parameters = {}
 
